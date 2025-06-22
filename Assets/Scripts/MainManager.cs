@@ -3,29 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
+using System.IO;
 public class MainManager : MonoBehaviour
 {
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
-
+    public Button BackButton;
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
-    
+    // public MainManager mainInstance;
     private bool m_Started = false;
     private int m_Points;
-    
+  
     private bool m_GameOver = false;
 
-    
+
     // Start is called before the first frame update
     void Start()
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -36,8 +37,8 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+        DisplayBestScore();
     }
-
     private void Update()
     {
         if (!m_Started)
@@ -60,17 +61,42 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
+        if (PlayerData.Instance.bestScore < m_Points)
+        {
+            PlayerData.Instance.bestScore = m_Points;
+            PlayerData.Instance.bestplayer = PlayerData.Instance.playerName;
+            PlayerData.Instance.SaveScore();
+            DisplayBestScore();
+        }
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        
     }
 
     public void GameOver()
     {
         m_GameOver = true;
+
         GameOverText.SetActive(true);
+        BackButton.gameObject.SetActive(true);
     }
+
+    public void BackToMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    public void DisplayBestScore()
+    {
+       PlayerData.Instance.LoadScore();
+        BestScoreText.text = $"Name : {PlayerData.Instance.bestplayer} | BestScore:  {PlayerData.Instance.bestScore} ";
+    }
+    
+
+    
 }
